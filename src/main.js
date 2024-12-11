@@ -1,4 +1,12 @@
-import { Application, Assets, Graphics, Sprite } from "pixi.js";
+import {
+  Application,
+  Assets,
+  Container,
+  Graphics,
+  Sprite,
+  TextStyle,
+} from "pixi.js";
+import { Button } from "@pixi/ui";
 import "./style.css";
 
 // const canvas = document.getElementById("canvas");
@@ -33,7 +41,7 @@ import "./style.css";
 
   // додаємо зірки на background
   const starCount = 100;
-  const graphics = new Graphics();
+  const starsGraphics = new Graphics();
 
   for (let index = 0; index < starCount; index++) {
     const x = (index * 0.78695 * app.screen.width) % app.screen.width;
@@ -41,10 +49,50 @@ import "./style.css";
     const radius = 2 + Math.random() * 6;
     const rotation = Math.random() * Math.PI * 2;
 
-    graphics
+    starsGraphics
       .star(x, y, 5, radius, 0, rotation)
       .fill({ color: "#cbebea", alpha: radius / 5 });
   }
 
-  app.stage.addChild(graphics);
+  app.stage.addChild(starsGraphics);
+
+  // додаємо астероїди
+  const asteroidTexture = await Assets.load("/src/img/asteroid.png");
+
+  // asteroid.x = app.screen.width / 2;
+  // asteroid.y = spaceship.height / 2;
+
+  function createAsteroid() {
+    const asteroid = new Sprite(asteroidTexture);
+    asteroid.anchor.set(0.5);
+    asteroid.width = 50;
+    asteroid.height = 60;
+    asteroid.x = Math.random() * app.screen.width;
+    asteroid.y = Math.random() * (app.screen.height - 200);
+
+    return asteroid;
+  }
+  function addRandomAsteroids(count) {
+    for (let i = 0; i < count; i++) {
+      const asteroid = createAsteroid();
+      app.stage.addChild(asteroid);
+    }
+  }
+
+  addRandomAsteroids(5);
+
+  // const asteroidCount = 5;
+  // const asteroidGraphics = new Graphics();
+
+  // for (let index = 0; index < asteroidCount; index++) {
+  //   const x = (index * 0.78695 * app.screen.width) % app.screen.width;
+  //   const y = (index * 0.9382 * app.screen.height) % app.screen.height;
+  //   const radius = 2 + Math.random() * 26;
+  //   const rotation = Math.random() * Math.PI * 2;
+
+  //   asteroidGraphics
+  //     .star(x, y, 5, radius, 0, rotation)
+  //     .fill({ color: "red", alpha: radius / 5 });
+  // }
+  // app.stage.addChild(asteroidGraphics);
 })();
