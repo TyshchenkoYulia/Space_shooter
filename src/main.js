@@ -1,12 +1,5 @@
-import {
-  Application,
-  Assets,
-  Container,
-  Graphics,
-  Sprite,
-  TextStyle,
-} from "pixi.js";
-import { Button } from "@pixi/ui";
+import { Application, Assets, Container, Graphics, Sprite } from "pixi.js";
+// import { Button } from "@pixi/ui";
 import "./style.css";
 
 // const canvas = document.getElementById("canvas");
@@ -71,6 +64,8 @@ import "./style.css";
 
   // asteroidsContainer.addChild(containerBorder);
   // app.stage.addChild(asteroidsContainer);
+  // asteroidsContainer.addChild(asteroid);
+  // console.log(asteroidsContainer);
 
   const asteroidTexture = await Assets.load("/src/img/asteroid.png");
 
@@ -93,6 +88,36 @@ import "./style.css";
   }
   addRandomAsteroids(5);
 
-  // asteroidsContainer.addChild(asteroid);
-  // console.log(asteroidsContainer);
+  // додаємо управління рухом корабля
+
+  let moveLeft = false;
+  let moveRight = false;
+  const shipSpeed = 8;
+
+  window.addEventListener("keydown", (event) => {
+    if (event.code === "ArrowLeft") {
+      moveLeft = true;
+    }
+    if (event.code === "ArrowRight") {
+      moveRight = true;
+    }
+  });
+
+  window.addEventListener("keyup", (event) => {
+    if (event.code === "ArrowLeft") {
+      moveLeft = false;
+    }
+    if (event.code === "ArrowRight") {
+      moveRight = false;
+    }
+  });
+
+  app.ticker.add(() => {
+    if (moveLeft && spaceship.x > spaceship.width / 2) {
+      spaceship.x -= shipSpeed;
+    }
+    if (moveRight && spaceship.x < app.screen.width - spaceship.width / 2) {
+      spaceship.x += shipSpeed;
+    }
+  });
 })();
