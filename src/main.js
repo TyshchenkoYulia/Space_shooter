@@ -34,7 +34,7 @@ import "./style.css";
   const spaceship = new Sprite(spaceshipTexture);
   spaceship.anchor.set(0.5);
   spaceship.width = 100;
-  spaceship.height = 160;
+  spaceship.height = 120;
   spaceship.x = app.screen.width / 2;
   spaceship.y = app.screen.height - spaceship.height / 2;
   app.stage.addChild(spaceship);
@@ -57,10 +57,22 @@ import "./style.css";
   app.stage.addChild(starsGraphics);
 
   // додаємо астероїди
-  const asteroidTexture = await Assets.load("/src/img/asteroid.png");
 
-  // asteroid.x = app.screen.width / 2;
-  // asteroid.y = spaceship.height / 2;
+  // const asteroidsContainer = new Container();
+  // asteroidsContainer.x = 25;
+  // asteroidsContainer.y = 70;
+  // const asteroidsContainerWidth = app.screen.width - 50;
+  // const asteroidsContainerHeight = app.screen.height - 200;
+
+  // const containerBorder = new Graphics()
+  //   .rect(0, 0, asteroidsContainerWidth, asteroidsContainerHeight)
+  //   .fill("white")
+  //   .stroke({ color: 0xff0000, pixelLine: true });
+
+  // asteroidsContainer.addChild(containerBorder);
+  // app.stage.addChild(asteroidsContainer);
+
+  const asteroidTexture = await Assets.load("/src/img/asteroid.png");
 
   function createAsteroid() {
     const asteroid = new Sprite(asteroidTexture);
@@ -72,27 +84,15 @@ import "./style.css";
 
     return asteroid;
   }
+
   function addRandomAsteroids(count) {
     for (let i = 0; i < count; i++) {
       const asteroid = createAsteroid();
       app.stage.addChild(asteroid);
     }
   }
-
   addRandomAsteroids(5);
 
-  // const asteroidCount = 5;
-  // const asteroidGraphics = new Graphics();
-
-  // for (let index = 0; index < asteroidCount; index++) {
-  //   const x = (index * 0.78695 * app.screen.width) % app.screen.width;
-  //   const y = (index * 0.9382 * app.screen.height) % app.screen.height;
-  //   const radius = 2 + Math.random() * 26;
-  //   const rotation = Math.random() * Math.PI * 2;
-
-  //   asteroidGraphics
-  //     .star(x, y, 5, radius, 0, rotation)
-  //     .fill({ color: "red", alpha: radius / 5 });
-  // }
-  // app.stage.addChild(asteroidGraphics);
+  // asteroidsContainer.addChild(asteroid);
+  // console.log(asteroidsContainer);
 })();
