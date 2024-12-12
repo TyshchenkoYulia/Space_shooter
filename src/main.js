@@ -1,19 +1,18 @@
-import { Application, Assets, Container, Graphics, Sprite } from "pixi.js";
-// import { Button } from "@pixi/ui";
+import { Application, Assets, Graphics, Sprite } from "pixi.js";
 import "./style.css";
 
-// const canvas = document.getElementById("canvas");
-// const ctx = canvas.getContext("2d");
+const canvas = document.getElementById("canvas");
 
 (async () => {
   const app = new Application();
 
   await app.init({
-    width: 1280,
-    height: 720,
+    view: canvas,
+    width: canvas.width,
+    height: canvas.height,
     resizeTo: window,
   });
-  document.body.appendChild(app.canvas);
+  // document.body.appendChild(app.canvas);
 
   //  додаємо background
   const bgTexture = await Assets.load("/src/img/starry-sky.png");
@@ -74,7 +73,8 @@ import "./style.css";
     asteroid.anchor.set(0.5);
     asteroid.width = 50;
     asteroid.height = 60;
-    asteroid.x = Math.random() * app.screen.width;
+
+    asteroid.x = Math.random() * app.screen.width - 100;
     asteroid.y = Math.random() * (app.screen.height - 200);
 
     return asteroid;
