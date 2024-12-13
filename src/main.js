@@ -3,6 +3,8 @@ import "./style.css";
 
 const canvas = document.getElementById("canvas");
 const startButton = document.getElementById("start-button");
+const bullets = document.getElementById("bullets");
+const timer = document.getElementById("timer");
 
 const app = new Application();
 
@@ -118,10 +120,28 @@ async function onStartGame(params) {
   console.log("game started");
 
   await addAsteroids("/src/img/asteroid.png");
+  await startTimer();
+}
+
+// додаємо логіку таймера
+
+async function startTimer() {
+  let timeleft = 60;
+  timer.textContent = `Time: ${timeleft}`;
+
+  const timerInterval = setInterval(() => {
+    timeleft--;
+
+    timer.textContent = `Time: ${timeleft}`;
+
+    if (timeleft <= 0) {
+      clearInterval(timerInterval);
+      console.log("finish");
+    }
+  }, 1000);
 }
 
 // ==================================================================
-
 (async () => {
   await app.init({
     canvas: canvas,
