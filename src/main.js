@@ -15,6 +15,8 @@ async function addBackground(imageBg) {
   background.width = app.screen.width;
   background.height = app.screen.height;
   app.stage.addChild(background);
+
+  // return background;
 }
 
 // додаємо зірки на background
@@ -34,6 +36,8 @@ async function addStars() {
   }
 
   app.stage.addChild(starsGraphics);
+
+  // return starsGraphics;
 }
 
 // додаємо космічний корабель
@@ -48,6 +52,8 @@ async function addSpaceShip(imageSpaceShipe) {
   app.stage.addChild(spaceship);
 
   await setupSpaceShip(spaceship, app);
+
+  // return spaceship;
 }
 
 // додаємо управління рухом корабля
@@ -111,9 +117,14 @@ async function addAsteroids(imageAsteroid) {
 
 // ініціалізуємо початок гри
 async function onClickStartButton() {
-  startButton.onclick = () => onStartGame();
+  startButton.addEventListener("click", onStartGame);
 
-  return startButton;
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      onStartGame();
+    }
+  });
+  // return startButton;
 }
 
 async function onStartGame(params) {
@@ -121,10 +132,11 @@ async function onStartGame(params) {
 
   await addAsteroids("/src/img/asteroid.png");
   await startTimer();
+  await addBullets();
+  await onCountBullets();
 }
 
 // додаємо логіку таймера
-
 async function startTimer() {
   let timeleft = 60;
   timer.textContent = `Time: ${timeleft}`;
@@ -139,6 +151,58 @@ async function startTimer() {
       console.log("finish");
     }
   }, 1000);
+}
+
+// створюємо кулі
+const countBullets = [];
+const maxBullets = 10;
+
+async function addBullets() {
+  for (let i = 0; i < maxBullets; i++) {
+    const bullet = new Graphics();
+    bullet.fill(0xffffff);
+    bullet.circle(0, 0, 5);
+    bullet.x = app.screen.width / 2;
+    bullet.y = app.screen.height;
+    bullet.visible = false;
+
+    app.stage.addChild(bullet);
+    countBullets.push(bullet);
+  }
+}
+
+function fireBullet() {
+  const availableBullet = countBullets.find((bullet) => !bullet.visible);
+
+  if (availableBullet) {
+    availableBullet.visible = true;
+
+    const bulletInterval = setInterval(() => {
+      availableBullet.y -= 5;
+
+      if (availableBullet.y < 0) {
+        clearInterval(bulletInterval);
+        availableBullet.visible = false;
+        availableBullet.y = app.screen.height - 50;
+      }
+    }, 20);
+  }
+}
+
+window.addEventListener("keydown", (event) => {
+  if (event.code === "Space") {
+    fireBullet();
+  }
+});
+
+// створюємо логіку куль, що залишились
+async function onCountBullets(params) {
+  let bulletsleft = 10;
+  bullets.textContent = `Bullets: ${bulletsleft} / 10`;
+
+  if (bulletsleft <= 0) {
+    console.log("bullets finished");
+  }
 }
 
 // ==================================================================
