@@ -23,6 +23,7 @@ body {
 }
 canvas {
   display: block;
+  position: relative;
 }
 
 .wrapper {
@@ -30,10 +31,16 @@ canvas {
   justify-content: space-between;
   align-items: center;
   width: 1100px;
-  /* color: rgb(7, 120, 141); */
+
   color: rgb(164, 6, 6);
   font-weight: 700;
   font-size: 26px;
+  position: absolute;
+  z-index: 9999999999;
+  top: 20px;
+}
+p {
+  margin: 0;
 }
 
 button {
@@ -44,10 +51,15 @@ button {
   font-size: large;
   color: rgb(7, 120, 141);
   background-color: inherit;
+  position: absolute;
 }
 
 button:hover,
 button:focus {
-  color: rgb(100, 150, 231);
-  border-color: rgb(100, 150, 231);
+  color: rgb(164, 6, 6);
+  border-color: rgb(164, 6, 6);
+}
+
+.hidden {
+  display: none;
 }

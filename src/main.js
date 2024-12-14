@@ -142,6 +142,9 @@ async function addBullets() {
     // .rect(0, 0, 10, 10)
     // .stroke({ color: 0xff0000, pixelLine: true });
 
+    // bullet.x = spaceship;
+    // bullet.y = spaceship.height - 60;
+
     bullet.x = app.screen.width / 2;
     bullet.y = app.screen.height - 60;
     bullet.visible = false;
@@ -151,7 +154,7 @@ async function addBullets() {
   }
 }
 
-function fireBullet(spaceship) {
+function fireBullet() {
   const availableBullet = countBullets.find((bullet) => !bullet.visible);
 
   if (availableBullet) {
@@ -164,8 +167,6 @@ function fireBullet(spaceship) {
         clearInterval(bulletInterval);
         availableBullet.visible = false;
         availableBullet.y = app.screen.height - 60;
-        // availableBullet.y = spaceship.height - 60;
-        // availableBullet.x = spaceship;
       }
     }, 20);
   }
@@ -191,16 +192,18 @@ async function onCountBullets(params) {
 async function onClickStartButton() {
   startButton.addEventListener("click", onStartGame);
 
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      onStartGame();
-    }
-  });
-  return startButton;
+  // window.addEventListener("keydown", (event) => {
+  //   if (event.key === "Enter") {
+  //     onStartGame();
+  //   }
+  // });
+
+  // return startButton;
 }
 
-async function onStartGame(params) {
+async function onStartGame() {
   console.log("game started");
+  startButton.classList.toggle("hidden");
 
   await addAsteroids("/src/img/asteroid.png");
   await startTimer();
