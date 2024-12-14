@@ -115,27 +115,6 @@ async function addAsteroids(imageAsteroid) {
   addRandomAsteroids(5);
 }
 
-// ініціалізуємо початок гри
-async function onClickStartButton() {
-  startButton.addEventListener("click", onStartGame);
-
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      onStartGame();
-    }
-  });
-  // return startButton;
-}
-
-async function onStartGame(params) {
-  console.log("game started");
-
-  await addAsteroids("/src/img/asteroid.png");
-  await startTimer();
-  await addBullets();
-  await onCountBullets();
-}
-
 // додаємо логіку таймера
 async function startTimer() {
   let timeleft = 60;
@@ -159,11 +138,12 @@ const maxBullets = 10;
 
 async function addBullets() {
   for (let i = 0; i < maxBullets; i++) {
-    const bullet = new Graphics();
-    bullet.fill(0xffffff);
-    bullet.circle(0, 0, 5);
+    const bullet = new Graphics().circle(0, 0, 8).fill("rgb(164, 6, 6)");
+    // .rect(0, 0, 10, 10)
+    // .stroke({ color: 0xff0000, pixelLine: true });
+
     bullet.x = app.screen.width / 2;
-    bullet.y = app.screen.height;
+    bullet.y = app.screen.height - 60;
     bullet.visible = false;
 
     app.stage.addChild(bullet);
@@ -171,7 +151,7 @@ async function addBullets() {
   }
 }
 
-function fireBullet() {
+function fireBullet(spaceship) {
   const availableBullet = countBullets.find((bullet) => !bullet.visible);
 
   if (availableBullet) {
@@ -183,7 +163,9 @@ function fireBullet() {
       if (availableBullet.y < 0) {
         clearInterval(bulletInterval);
         availableBullet.visible = false;
-        availableBullet.y = app.screen.height - 50;
+        availableBullet.y = app.screen.height - 60;
+        // availableBullet.y = spaceship.height - 60;
+        // availableBullet.x = spaceship;
       }
     }, 20);
   }
@@ -203,6 +185,27 @@ async function onCountBullets(params) {
   if (bulletsleft <= 0) {
     console.log("bullets finished");
   }
+}
+
+// ініціалізуємо початок гри
+async function onClickStartButton() {
+  startButton.addEventListener("click", onStartGame);
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      onStartGame();
+    }
+  });
+  return startButton;
+}
+
+async function onStartGame(params) {
+  console.log("game started");
+
+  await addAsteroids("/src/img/asteroid.png");
+  await startTimer();
+  await addBullets();
+  await onCountBullets();
 }
 
 // ==================================================================
