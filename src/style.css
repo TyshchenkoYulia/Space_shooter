@@ -60,6 +60,13 @@ button:focus {
   border-color: rgb(164, 6, 6);
 }
 
-.hidden {
+/* .hidden {
   display: none;
+} */
+
+#start-button {
+  transition: opasity 500ms linear;
+}
+#start-button.hidden {
+  opacity: 0;
 }

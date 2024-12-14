@@ -69,6 +69,9 @@ async function setupSpaceShip(spaceship, app) {
     if (event.code === "ArrowRight") {
       moveRight = true;
     }
+    if (event.code === "Space") {
+      fireBullet(spaceship, app);
+    }
   });
 
   window.addEventListener("keyup", (event) => {
@@ -135,15 +138,11 @@ async function startTimer() {
 // створюємо кулі
 const countBullets = [];
 const maxBullets = 10;
+let bulletsleft = maxBullets;
 
 async function addBullets() {
   for (let i = 0; i < maxBullets; i++) {
     const bullet = new Graphics().circle(0, 0, 8).fill("rgb(164, 6, 6)");
-    // .rect(0, 0, 10, 10)
-    // .stroke({ color: 0xff0000, pixelLine: true });
-
-    // bullet.x = spaceship;
-    // bullet.y = spaceship.height - 60;
 
     bullet.x = app.screen.width / 2;
     bullet.y = app.screen.height - 60;
@@ -154,11 +153,22 @@ async function addBullets() {
   }
 }
 
-function fireBullet() {
+// додаємо логіку пострілів
+function fireBullet(spaceship, app) {
+  if (bulletsleft <= 0) {
+    console.log("bullets finished");
+    return;
+  }
   const availableBullet = countBullets.find((bullet) => !bullet.visible);
 
   if (availableBullet) {
     availableBullet.visible = true;
+    bulletsleft--;
+    bullets.textContent = `Bullets: ${bulletsleft} / ${maxBullets}`;
+    console.log(spaceship.x);
+
+    availableBullet.x = spaceship.x;
+    availableBullet.y = app.screen.height - 100;
 
     const bulletInterval = setInterval(() => {
       availableBullet.y -= 5;
@@ -166,7 +176,6 @@ function fireBullet() {
       if (availableBullet.y < 0) {
         clearInterval(bulletInterval);
         availableBullet.visible = false;
-        availableBullet.y = app.screen.height - 60;
       }
     }, 20);
   }
@@ -178,37 +187,22 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-// створюємо логіку куль, що залишились
-async function onCountBullets(params) {
-  let bulletsleft = 10;
-  bullets.textContent = `Bullets: ${bulletsleft} / 10`;
-
-  if (bulletsleft <= 0) {
-    console.log("bullets finished");
-  }
-}
-
 // ініціалізуємо початок гри
-async function onClickStartButton() {
-  startButton.addEventListener("click", onStartGame);
+startButton.addEventListener("click", () => {
+  startButton.classList.toggle("hidden");
 
-  // window.addEventListener("keydown", (event) => {
-  //   if (event.key === "Enter") {
-  //     onStartGame();
-  //   }
-  // });
-
-  // return startButton;
-}
+  setTimeout(() => {
+    startButton.style.display = "none";
+    onStartGame();
+  }, 500);
+});
 
 async function onStartGame() {
   console.log("game started");
-  startButton.classList.toggle("hidden");
 
   await addAsteroids("/src/img/asteroid.png");
   await startTimer();
   await addBullets();
-  await onCountBullets();
 }
 
 // ==================================================================
@@ -223,21 +217,4 @@ async function onStartGame() {
   await addBackground("/src/img/starry-sky.png");
   await addStars();
   await addSpaceShip("./src/img/spaceship.png");
-  await onClickStartButton();
 })();
-
-// const asteroidsContainer = new Container();
-// asteroidsContainer.x = 25;
-// asteroidsContainer.y = 70;
-// const asteroidsContainerWidth = app.screen.width - 50;
-// const asteroidsContainerHeight = app.screen.height - 200;
-
-// const containerBorder = new Graphics()
-//   .rect(0, 0, asteroidsContainerWidth, asteroidsContainerHeight)
-//   .fill("white")
-//   .stroke({ color: 0xff0000, pixelLine: true });
-
-// asteroidsContainer.addChild(containerBorder);
-// app.stage.addChild(asteroidsContainer);
-// asteroidsContainer.addChild(asteroid);
-// console.log(asteroidsContainer);
