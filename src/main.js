@@ -21,6 +21,7 @@ const app = new Application();
   await addBackground("/src/img/starry-sky.png");
   await addStars();
   await addSpaceShip("./src/img/spaceship.png");
+  await onClickButton();
 })();
 
 // =======================================================================
@@ -68,17 +69,19 @@ async function addSpaceShip(imageSpaceShipe) {
   spaceship.y = app.screen.height - spaceship.height / 2;
   app.stage.addChild(spaceship);
 
-  await setupSpaceShip(spaceship, app);
+  // if (!gameEnded) {
 
-  // return spaceship;
+  // }
+
+  await setupSpaceShip(spaceship, app);
 }
 
 // додаємо управління рухом корабля
-async function setupSpaceShip(spaceship, app) {
-  let moveLeft = false;
-  let moveRight = false;
-  const shipSpeed = 8;
+let moveLeft = false;
+let moveRight = false;
+const shipSpeed = 8;
 
+async function setupSpaceShip(spaceship, app) {
   window.addEventListener("keydown", (event) => {
     if (event.code === "ArrowLeft") {
       moveLeft = true;
@@ -111,9 +114,9 @@ async function setupSpaceShip(spaceship, app) {
 }
 
 // додаємо астероїди
-
 let asteroidsLeft = [];
 const asteroidCount = 5;
+// let asteroidsAdded = false;
 
 async function addAsteroids(imageAsteroid) {
   const asteroidTexture = await Assets.load(imageAsteroid);
@@ -138,7 +141,9 @@ async function addAsteroids(imageAsteroid) {
     }
   }
   addRandomAsteroids(asteroidCount);
+  // asteroidsAdded = true;
 }
+
 // Видалення всіх астероїдів при закінченні гри
 function removeAsteroids(app) {
   console.log("remove asteroids", asteroidsLeft);
@@ -164,17 +169,15 @@ async function startTimer() {
     timer.textContent = `Time: ${timeleft}`;
 
     if (timeleft <= 0) {
-      setTimeout(() => {
-        removeAsteroids(app);
-      }, 1000);
-
-      setTimeout(() => {
-        addLoseText(app);
-      }, 1500);
+      onEndGame();
 
       clearInterval(timerInterval);
 
       console.log("finish timer");
+    }
+
+    if (bulletsleft <= 0) {
+      clearInterval(timerInterval);
     }
   }, 1000);
 }
@@ -206,24 +209,16 @@ function fireBullet(spaceship) {
   if (bulletsleft <= 0) {
     console.log("bullets finished");
 
-    setTimeout(() => {
-      removeAsteroids(app);
-    }, 1000);
-
-    setTimeout(() => {
-      addLoseText(app);
-    }, 1500);
-
+    onEndGame();
     return;
   }
+
   const availableBullet = countBullets.find((bullet) => !bullet.visible);
 
   if (availableBullet) {
     availableBullet.visible = true;
     bulletsleft--;
     bullets.textContent = `Bullets: ${bulletsleft} / ${maxBullets}`;
-
-    // console.log(spaceship.x);
 
     availableBullet.x = spaceship.x;
     availableBullet.y = spaceship.y - 50;
@@ -245,6 +240,29 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
+// кнопка Start New Game
+async function onClickButton() {
+  startButton.addEventListener("click", () => {
+    startButton.classList.toggle("hidden");
+
+    setTimeout(() => {
+      startButton.style.display = "none";
+      onStartGame();
+    }, 500);
+  });
+}
+
+function restartGameButton() {
+  startButton.classList.remove("hidden");
+  startButton.style.display = "block";
+
+  // setTimeout(() => {
+  //   location.reload();
+  // }, 3000);
+
+  // onClickButton();
+}
+
 // створюємо текст
 function addLoseText(app) {
   const loseText = new Text({
@@ -257,8 +275,8 @@ function addLoseText(app) {
     },
   });
 
-  loseText.x = app.screen.width / 2 - loseText.width / 2;
-  loseText.y = app.screen.height / 2 - loseText.height / 2;
+  loseText.x = app.screen.width / 2 - 150;
+  loseText.y = (0.3 * app.screen.height) / 2;
 
   app.stage.addChild(loseText);
 }
@@ -281,19 +299,32 @@ function addWinText(app) {
 }
 
 // ініціалізуємо початок гри
-startButton.addEventListener("click", () => {
-  startButton.classList.toggle("hidden");
-
-  setTimeout(() => {
-    startButton.style.display = "none";
-    onStartGame();
-  }, 500);
-});
 
 async function onStartGame() {
+  // gameEnded = false;
+
   console.log("game started");
 
   await addAsteroids("/src/img/asteroid.png");
   await startTimer();
   await addBullets();
+}
+
+// кінець гри
+// let gameEnded = false;
+
+function onEndGame() {
+  // gameEnded = true;
+
+  setTimeout(() => {
+    removeAsteroids(app);
+  }, 1000);
+
+  setTimeout(() => {
+    addLoseText(app);
+  }, 1500);
+
+  setTimeout(() => {
+    restartGameButton();
+  }, 1500);
 }
