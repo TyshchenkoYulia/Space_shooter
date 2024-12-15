@@ -1,4 +1,4 @@
-import { Application, Assets, Graphics, Sprite } from "pixi.js";
+import { Application, Assets, Graphics, Sprite, Text } from "pixi.js";
 import "./style.css";
 
 const canvas = document.getElementById("canvas");
@@ -7,6 +7,23 @@ const bullets = document.getElementById("bullets");
 const timer = document.getElementById("timer");
 
 const app = new Application();
+
+// =====================================================================
+
+(async () => {
+  await app.init({
+    canvas: canvas,
+    width: canvas.width,
+    height: canvas.height,
+    // resizeTo: window,
+  });
+
+  await addBackground("/src/img/starry-sky.png");
+  await addStars();
+  await addSpaceShip("./src/img/spaceship.png");
+})();
+
+// =======================================================================
 
 //  додаємо background
 async function addBackground(imageBg) {
@@ -94,6 +111,10 @@ async function setupSpaceShip(spaceship, app) {
 }
 
 // додаємо астероїди
+
+let asteroidsLeft = [];
+const asteroidCount = 5;
+
 async function addAsteroids(imageAsteroid) {
   const asteroidTexture = await Assets.load(imageAsteroid);
 
@@ -113,14 +134,28 @@ async function addAsteroids(imageAsteroid) {
     for (let i = 0; i < count; i++) {
       const asteroid = createAsteroid();
       app.stage.addChild(asteroid);
+      asteroidsLeft.push(asteroid);
     }
   }
-  addRandomAsteroids(5);
+  addRandomAsteroids(asteroidCount);
+}
+// Видалення всіх астероїдів при закінченні гри
+function removeAsteroids(app) {
+  console.log("remove asteroids", asteroidsLeft);
+
+  if (asteroidsLeft.length > 0) {
+    asteroidsLeft.forEach((asteroid) => {
+      if (app.stage.children.includes(asteroid)) {
+        app.stage.removeChild(asteroid);
+      }
+    });
+    asteroidsLeft.length = 0;
+  }
 }
 
 // додаємо логіку таймера
 async function startTimer() {
-  let timeleft = 60;
+  let timeleft = 10;
   timer.textContent = `Time: ${timeleft}`;
 
   const timerInterval = setInterval(() => {
@@ -129,15 +164,24 @@ async function startTimer() {
     timer.textContent = `Time: ${timeleft}`;
 
     if (timeleft <= 0) {
+      setTimeout(() => {
+        removeAsteroids(app);
+      }, 1000);
+
+      setTimeout(() => {
+        addLoseText(app);
+      }, 1500);
+
       clearInterval(timerInterval);
-      console.log("finish");
+
+      console.log("finish timer");
     }
   }, 1000);
 }
 
 // створюємо кулі
 const countBullets = [];
-const maxBullets = 10;
+const maxBullets = 3;
 let bulletsleft = maxBullets;
 
 async function addBullets() {
@@ -154,9 +198,22 @@ async function addBullets() {
 }
 
 // додаємо логіку пострілів
-function fireBullet(spaceship, app) {
+function fireBullet(spaceship) {
+  if (!spaceship) {
+    return;
+  }
+
   if (bulletsleft <= 0) {
     console.log("bullets finished");
+
+    setTimeout(() => {
+      removeAsteroids(app);
+    }, 1000);
+
+    setTimeout(() => {
+      addLoseText(app);
+    }, 1500);
+
     return;
   }
   const availableBullet = countBullets.find((bullet) => !bullet.visible);
@@ -165,10 +222,11 @@ function fireBullet(spaceship, app) {
     availableBullet.visible = true;
     bulletsleft--;
     bullets.textContent = `Bullets: ${bulletsleft} / ${maxBullets}`;
-    console.log(spaceship.x);
+
+    // console.log(spaceship.x);
 
     availableBullet.x = spaceship.x;
-    availableBullet.y = app.screen.height - 100;
+    availableBullet.y = spaceship.y - 50;
 
     const bulletInterval = setInterval(() => {
       availableBullet.y -= 5;
@@ -187,6 +245,41 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
+// створюємо текст
+function addLoseText(app) {
+  const loseText = new Text({
+    text: "YOU LOSE",
+    style: {
+      fontFamily: "Arial",
+      fontSize: 54,
+      fontWeight: 700,
+      fill: "rgb(164, 6, 6)",
+    },
+  });
+
+  loseText.x = app.screen.width / 2 - loseText.width / 2;
+  loseText.y = app.screen.height / 2 - loseText.height / 2;
+
+  app.stage.addChild(loseText);
+}
+
+function addWinText(app) {
+  const winText = new Text({
+    text: "YOU WIN",
+    style: {
+      fontFamily: "Arial",
+      fontSize: 54,
+      fontWeight: 700,
+      fill: "rgb(7, 120, 141)",
+    },
+  });
+
+  winText.x = app.screen.width / 2 - winText.width / 2;
+  winText.y = app.screen.height / 2 - winText.height / 2;
+
+  app.stage.addChild(winText);
+}
+
 // ініціалізуємо початок гри
 startButton.addEventListener("click", () => {
   startButton.classList.toggle("hidden");
@@ -204,17 +297,3 @@ async function onStartGame() {
   await startTimer();
   await addBullets();
 }
-
-// ==================================================================
-(async () => {
-  await app.init({
-    canvas: canvas,
-    width: canvas.width,
-    height: canvas.height,
-    // resizeTo: window,
-  });
-
-  await addBackground("/src/img/starry-sky.png");
-  await addStars();
-  await addSpaceShip("./src/img/spaceship.png");
-})();
