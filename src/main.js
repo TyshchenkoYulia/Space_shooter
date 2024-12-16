@@ -1,12 +1,36 @@
-import { Application, Assets, Graphics, Sprite, Text } from "pixi.js";
+import {
+  Application,
+  applyStyleParams,
+  Assets,
+  Container,
+  Graphics,
+  Sprite,
+  Text,
+} from "pixi.js";
 import "./style.css";
 
 const canvas = document.getElementById("canvas");
 const startButton = document.getElementById("start-button");
+const nextLevelButton = document.getElementById("nextLevel-button");
 const bullets = document.getElementById("bullets");
 const timer = document.getElementById("timer");
 
 const app = new Application();
+
+// =====================================================================
+
+let moveLeft = false;
+let moveRight = false;
+const shipSpeed = 4;
+let asteroidsLeft = [];
+const asteroidCount = 5;
+let asteroidsAdded = false;
+const countBullets = [];
+const maxBullets = 3;
+let bulletsleft = maxBullets;
+let isLoseText = false;
+let isStartGame = false;
+let isEndedGame = false;
 
 // =====================================================================
 
@@ -21,7 +45,8 @@ const app = new Application();
   await addBackground("/src/img/starry-sky.png");
   await addStars();
   await addSpaceShip("./src/img/spaceship.png");
-  await onClickButton();
+  // await onClickStartGameButton();
+  onClickNextLevelButton();
 })();
 
 // =======================================================================
@@ -69,17 +94,16 @@ async function addSpaceShip(imageSpaceShipe) {
   spaceship.y = app.screen.height - spaceship.height / 2;
   app.stage.addChild(spaceship);
 
-  // if (!gameEnded) {
-
-  // }
+  // console.log(asteroidsAdded);
+  // console.log(isEndedGame);
+  // console.log(isStartGame);
+  // console.log();
+  // console.log();
 
   await setupSpaceShip(spaceship, app);
 }
 
 // додаємо управління рухом корабля
-let moveLeft = false;
-let moveRight = false;
-const shipSpeed = 8;
 
 async function setupSpaceShip(spaceship, app) {
   window.addEventListener("keydown", (event) => {
@@ -114,11 +138,10 @@ async function setupSpaceShip(spaceship, app) {
 }
 
 // додаємо астероїди
-let asteroidsLeft = [];
-const asteroidCount = 5;
-// let asteroidsAdded = false;
 
 async function addAsteroids(imageAsteroid) {
+  isStartGame = true;
+
   const asteroidTexture = await Assets.load(imageAsteroid);
 
   function createAsteroid() {
@@ -141,7 +164,7 @@ async function addAsteroids(imageAsteroid) {
     }
   }
   addRandomAsteroids(asteroidCount);
-  // asteroidsAdded = true;
+  asteroidsAdded = true;
 }
 
 // Видалення всіх астероїдів при закінченні гри
@@ -160,7 +183,7 @@ function removeAsteroids(app) {
 
 // додаємо логіку таймера
 async function startTimer() {
-  let timeleft = 10;
+  let timeleft = 60;
   timer.textContent = `Time: ${timeleft}`;
 
   const timerInterval = setInterval(() => {
@@ -183,10 +206,6 @@ async function startTimer() {
 }
 
 // створюємо кулі
-const countBullets = [];
-const maxBullets = 3;
-let bulletsleft = maxBullets;
-
 async function addBullets() {
   for (let i = 0; i < maxBullets; i++) {
     const bullet = new Graphics().circle(0, 0, 8).fill("rgb(164, 6, 6)");
@@ -241,30 +260,46 @@ window.addEventListener("keydown", (event) => {
 });
 
 // кнопка Start New Game
-async function onClickButton() {
-  startButton.addEventListener("click", () => {
-    startButton.classList.toggle("hidden");
+//async function onClickStartGameButton() {
+//   isStartGame = true;
+//   asteroidsAdded = true;
 
-    setTimeout(() => {
-      startButton.style.display = "none";
-      onStartGame();
-    }, 500);
-  });
-}
+//   startButton.addEventListener("click", () => {
+//     startButton.classList.toggle("hidden");
+
+//     setTimeout(() => {
+//       startButton.style.display = "none";
+//       onStartGame();
+//     }, 500);
+//   });
+// }
 
 function restartGameButton() {
   startButton.classList.remove("hidden");
   startButton.style.display = "block";
 
-  // setTimeout(() => {
-  //   location.reload();
-  // }, 3000);
-
-  // onClickButton();
+  startButton.onclick = () => {
+    if (isLoseText) {
+      location.reload();
+    }
+  };
 }
 
+// кнопка Next Level
+async function onClickNextLevelButton() {
+  nextLevelButton.addEventListener("click", () => {
+    nextLevelButton.classList.toggle("hidden");
+
+    setTimeout(() => {
+      nextLevelButton.style.display = "none";
+      onNextLevel();
+    }, 500);
+  });
+}
 // створюємо текст
 function addLoseText(app) {
+  isLoseText = true;
+
   const loseText = new Text({
     text: "YOU LOSE",
     style: {
@@ -297,24 +332,64 @@ function addWinText(app) {
 
   app.stage.addChild(winText);
 }
+// додаємо текс рівнів
+function firstLevelText() {
+  const level1Text = new Text({
+    text: "LEVEL 1",
+    style: {
+      fontFamily: "Arial",
+      fontSize: 84,
+      fontWeight: 700,
+      fill: "rgb(7, 120, 141)",
+    },
+  });
 
-// ініціалізуємо початок гри
+  level1Text.x = app.screen.width / 2 - 150;
+  level1Text.y = app.screen.height / 2 - 50;
+  app.stage.addChild(level1Text);
 
+  setTimeout(() => {
+    app.stage.removeChild(level1Text);
+  }, 2000);
+}
+
+function secondLevelText() {
+  const level2Text = new Text({
+    text: "LEVEL 2",
+    style: {
+      fontFamily: "Arial",
+      fontSize: 84,
+      fontWeight: 700,
+      fill: "rgb(7, 120, 141)",
+    },
+  });
+
+  level2Text.x = app.screen.width / 2 - 150;
+  level2Text.y = app.screen.height / 2 - 50;
+  app.stage.addChild(level2Text);
+
+  setTimeout(() => {
+    app.stage.removeChild(level2Text);
+  }, 2000);
+}
+
+// ініціалізуємо початок гри / level 1
 async function onStartGame() {
-  // gameEnded = false;
-
+  // isStartGame = true;
   console.log("game started");
 
-  await addAsteroids("/src/img/asteroid.png");
-  await startTimer();
-  await addBullets();
+  firstLevelText();
+
+  setTimeout(() => {
+    addAsteroids("/src/img/asteroid.png");
+    startTimer();
+    addBullets();
+  }, 1500);
 }
 
 // кінець гри
-// let gameEnded = false;
-
 function onEndGame() {
-  // gameEnded = true;
+  isEndedGame = true;
 
   setTimeout(() => {
     removeAsteroids(app);
@@ -327,4 +402,103 @@ function onEndGame() {
   setTimeout(() => {
     restartGameButton();
   }, 1500);
+}
+
+// описуємо логіку попадання в астероїд
+function checkCollision(bullet, asteroid) {
+  // if (!bullet || !asteroid) {
+  //   console.error("Bullet or asteroid is undefined");
+  //   return;
+  // }
+
+  const dx = bullet.x - asteroid.x;
+  const dy = bullet.y - asteroid.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  console.log();
+  console.log(dx);
+  console.log(distance);
+  // Якщо відстань між центрами менша за радіус астероїда, є зіткнення
+  return distance < asteroid.width / 2;
+}
+
+function handleCollisions(app) {
+  // if (!app || !asteroid || !bullet) {
+  //   return;
+  // }
+
+  countBullets.forEach((bullet) => {
+    console.log(bullet);
+    if (bullet.visible) {
+      asteroidsLeft.forEach((asteroid, index) => {
+        if (checkCollision(bullet, asteroid)) {
+          app.stage.removeChild(asteroid);
+          asteroidsLeft.splice(index, 1);
+
+          bullet.visible = false;
+          bullet.y = app.screen.height - 60;
+        }
+      });
+    }
+  });
+}
+
+console.log(app.ticker);
+
+app.ticker.add(() => {
+  handleCollisions();
+});
+
+// start level 2
+async function onNextLevel(params) {
+  console.log("next level started");
+
+  secondLevelText();
+  setTimeout(() => {
+    addBoss("/src/img/boss.webp");
+
+    startTimer();
+    addBullets();
+  }, 1500);
+}
+
+// додаємо boss
+async function addBoss(imageBoss) {
+  const bossTexture = await Assets.load(imageBoss);
+  const boss = new Sprite(bossTexture);
+  boss.anchor.set(0.5);
+  boss.width = 100;
+  boss.height = 100;
+  boss.x = app.screen.width / 2;
+  boss.y = app.screen.height - boss.height / 2 - 500;
+
+  app.stage.addChild(boss);
+
+  // додаємо шкалу життя
+  function addLivePointBoss() {
+    if (!app) {
+      console.error("Application or app is not defined");
+      return;
+    }
+    const lifePointBar = new Container();
+    const lifePointWidth = 20;
+    const lifePointCount = 4;
+
+    for (let i = 0; i < lifePointCount; i++) {
+      const lifePoint = new Graphics();
+
+      lifePoint.rect(0, 0, lifePointWidth, 10);
+      lifePoint.fill("rgb(164, 6, 6)");
+
+      lifePoint.x = i * (lifePointWidth + 5);
+      lifePointBar.addChild(lifePoint);
+    }
+
+    lifePointBar.x = boss.x - (lifePointCount * (lifePointWidth + 5)) / 2;
+    lifePointBar.y = boss.y - boss.height / 2 - 20;
+
+    app.stage.addChild(lifePointBar);
+  }
+
+  addLivePointBoss();
 }
