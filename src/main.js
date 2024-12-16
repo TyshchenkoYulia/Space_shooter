@@ -22,11 +22,11 @@ const app = new Application();
 let moveLeft = false;
 let moveRight = false;
 const shipSpeed = 4;
-let asteroidsLeft = [];
+const asteroidsLeft = [];
 const asteroidCount = 5;
 let asteroidsAdded = false;
 const countBullets = [];
-const maxBullets = 3;
+const maxBullets = 10;
 let bulletsleft = maxBullets;
 let isLoseText = false;
 let isStartGame = false;
@@ -45,8 +45,8 @@ let isEndedGame = false;
   await addBackground("/src/img/starry-sky.png");
   await addStars();
   await addSpaceShip("./src/img/spaceship.png");
-  // await onClickStartGameButton();
-  onClickNextLevelButton();
+  await onClickStartGameButton();
+  // onClickNextLevelButton();
 })();
 
 // =======================================================================
@@ -138,7 +138,6 @@ async function setupSpaceShip(spaceship, app) {
 }
 
 // додаємо астероїди
-
 async function addAsteroids(imageAsteroid) {
   isStartGame = true;
 
@@ -213,6 +212,7 @@ async function addBullets() {
     bullet.x = app.screen.width / 2;
     bullet.y = app.screen.height - 60;
     bullet.visible = false;
+    // console.log(countBullets);
 
     app.stage.addChild(bullet);
     countBullets.push(bullet);
@@ -253,26 +253,20 @@ function fireBullet(spaceship) {
   }
 }
 
-window.addEventListener("keydown", (event) => {
-  if (event.code === "Space") {
-    fireBullet();
-  }
-});
-
 // кнопка Start New Game
-//async function onClickStartGameButton() {
-//   isStartGame = true;
-//   asteroidsAdded = true;
+async function onClickStartGameButton() {
+  isStartGame = true;
+  asteroidsAdded = true;
 
-//   startButton.addEventListener("click", () => {
-//     startButton.classList.toggle("hidden");
+  startButton.addEventListener("click", () => {
+    startButton.classList.toggle("hidden");
 
-//     setTimeout(() => {
-//       startButton.style.display = "none";
-//       onStartGame();
-//     }, 500);
-//   });
-// }
+    setTimeout(() => {
+      startButton.style.display = "none";
+      onStartGame();
+    }, 500);
+  });
+}
 
 function restartGameButton() {
   startButton.classList.remove("hidden");
@@ -385,6 +379,10 @@ async function onStartGame() {
     startTimer();
     addBullets();
   }, 1500);
+
+  app.ticker.add(() => {
+    checkCollisions(app);
+  });
 }
 
 // кінець гри
@@ -405,33 +403,20 @@ function onEndGame() {
 }
 
 // описуємо логіку попадання в астероїд
-function checkCollision(bullet, asteroid) {
-  // if (!bullet || !asteroid) {
-  //   console.error("Bullet or asteroid is undefined");
-  //   return;
-  // }
-
-  const dx = bullet.x - asteroid.x;
-  const dy = bullet.y - asteroid.y;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-
-  console.log();
-  console.log(dx);
-  console.log(distance);
-  // Якщо відстань між центрами менша за радіус астероїда, є зіткнення
-  return distance < asteroid.width / 2;
+function isRectCollision(rect1, rect2) {
+  return (
+    rect1.x < rect2.x + rect2.width &&
+    rect1.x + rect1.width > rect2.x &&
+    rect1.y < rect2.y + rect2.height &&
+    rect1.y + rect1.height > rect2.y
+  );
 }
 
-function handleCollisions(app) {
-  // if (!app || !asteroid || !bullet) {
-  //   return;
-  // }
-
+function checkCollisions(app) {
   countBullets.forEach((bullet) => {
-    console.log(bullet);
     if (bullet.visible) {
       asteroidsLeft.forEach((asteroid, index) => {
-        if (checkCollision(bullet, asteroid)) {
+        if (isRectCollision(bullet, asteroid)) {
           app.stage.removeChild(asteroid);
           asteroidsLeft.splice(index, 1);
 
@@ -442,12 +427,6 @@ function handleCollisions(app) {
     }
   });
 }
-
-console.log(app.ticker);
-
-app.ticker.add(() => {
-  handleCollisions();
-});
 
 // start level 2
 async function onNextLevel(params) {
