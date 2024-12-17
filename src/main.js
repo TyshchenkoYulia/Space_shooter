@@ -23,14 +23,17 @@ let moveLeft = false;
 let moveRight = false;
 const shipSpeed = 4;
 const asteroidsLeft = [];
-const asteroidCount = 5;
+const asteroidCount = 1;
 let asteroidsAdded = false;
-const countBullets = [];
+let countBullets = [];
 const maxBullets = 10;
-let bulletsleft = maxBullets;
+let bulletsleft = 10;
 let isLoseText = false;
 let isStartGame = false;
 let isEndedGame = false;
+let timeleft = 60;
+let timeInterval = [];
+let timerInterval = null;
 
 // =====================================================================
 
@@ -46,7 +49,7 @@ let isEndedGame = false;
   await addStars();
   await addSpaceShip("./src/img/spaceship.png");
   await onClickStartGameButton();
-  // onClickNextLevelButton();
+  await onClickNextLevelButton();
 })();
 
 // =======================================================================
@@ -93,12 +96,6 @@ async function addSpaceShip(imageSpaceShipe) {
   spaceship.x = app.screen.width / 2;
   spaceship.y = app.screen.height - spaceship.height / 2;
   app.stage.addChild(spaceship);
-
-  // console.log(asteroidsAdded);
-  // console.log(isEndedGame);
-  // console.log(isStartGame);
-  // console.log();
-  // console.log();
 
   await setupSpaceShip(spaceship, app);
 }
@@ -181,8 +178,8 @@ function removeAsteroids(app) {
 }
 
 // додаємо логіку таймера
+
 async function startTimer() {
-  let timeleft = 60;
   timer.textContent = `Time: ${timeleft}`;
 
   const timerInterval = setInterval(() => {
@@ -191,7 +188,7 @@ async function startTimer() {
     timer.textContent = `Time: ${timeleft}`;
 
     if (timeleft <= 0) {
-      onEndGame();
+      onEndLoseGame();
 
       clearInterval(timerInterval);
 
@@ -199,6 +196,10 @@ async function startTimer() {
     }
 
     if (bulletsleft <= 0) {
+      clearInterval(timerInterval);
+    }
+
+    if (asteroidsLeft <= 0) {
       clearInterval(timerInterval);
     }
   }, 1000);
@@ -212,7 +213,6 @@ async function addBullets() {
     bullet.x = app.screen.width / 2;
     bullet.y = app.screen.height - 60;
     bullet.visible = false;
-    // console.log(countBullets);
 
     app.stage.addChild(bullet);
     countBullets.push(bullet);
@@ -228,7 +228,7 @@ function fireBullet(spaceship) {
   if (bulletsleft <= 0) {
     console.log("bullets finished");
 
-    onEndGame();
+    onEndLoseGame();
     return;
   }
 
@@ -243,7 +243,7 @@ function fireBullet(spaceship) {
     availableBullet.y = spaceship.y - 50;
 
     const bulletInterval = setInterval(() => {
-      availableBullet.y -= 5;
+      availableBullet.y -= 10;
 
       if (availableBullet.y < 0) {
         clearInterval(bulletInterval);
@@ -264,7 +264,12 @@ async function onClickStartGameButton() {
     setTimeout(() => {
       startButton.style.display = "none";
       onStartGame();
+      // resetGameState();
     }, 500);
+
+    setTimeout(() => {
+      resetGameState();
+    }, 1000);
   });
 }
 
@@ -272,22 +277,21 @@ function restartGameButton() {
   startButton.classList.remove("hidden");
   startButton.style.display = "block";
 
-  startButton.onclick = () => {
-    if (isLoseText) {
-      location.reload();
-    }
-  };
+  // startButton.addEventListener("click", () => {
+  //   location.reload();
+  // });
+  // setTimeout(() => {
+  //   resetGameState();
+  // }, 1000);
 }
 
 // кнопка Next Level
 async function onClickNextLevelButton() {
   nextLevelButton.addEventListener("click", () => {
-    nextLevelButton.classList.toggle("hidden");
+    nextLevelButton.classList.add("hidden");
+    nextLevelButton.style.display = "none";
 
-    setTimeout(() => {
-      nextLevelButton.style.display = "none";
-      onNextLevel();
-    }, 500);
+    onNextLevel();
   });
 }
 // створюємо текст
@@ -308,6 +312,10 @@ function addLoseText(app) {
   loseText.y = (0.3 * app.screen.height) / 2;
 
   app.stage.addChild(loseText);
+
+  setTimeout(() => {
+    app.stage.removeChild(loseText);
+  }, 2000);
 }
 
 function addWinText(app) {
@@ -321,11 +329,16 @@ function addWinText(app) {
     },
   });
 
-  winText.x = app.screen.width / 2 - winText.width / 2;
-  winText.y = app.screen.height / 2 - winText.height / 2;
+  winText.x = app.screen.width / 2 - 120;
+  winText.y = (0.3 * app.screen.height) / 2;
 
   app.stage.addChild(winText);
+
+  setTimeout(() => {
+    app.stage.removeChild(winText);
+  }, 2000);
 }
+
 // додаємо текс рівнів
 function firstLevelText() {
   const level1Text = new Text({
@@ -386,9 +399,7 @@ async function onStartGame() {
 }
 
 // кінець гри
-function onEndGame() {
-  isEndedGame = true;
-
+function onEndLoseGame() {
   setTimeout(() => {
     removeAsteroids(app);
   }, 1000);
@@ -399,7 +410,17 @@ function onEndGame() {
 
   setTimeout(() => {
     restartGameButton();
+  }, 2000);
+}
+
+function onEndWinGame() {
+  setTimeout(() => {
+    addWinText(app);
   }, 1500);
+
+  setTimeout(() => {
+    nextLevelButton.classList.remove("hidden");
+  }, 2000);
 }
 
 // описуємо логіку попадання в астероїд
@@ -422,6 +443,11 @@ function checkCollisions(app) {
 
           bullet.visible = false;
           bullet.y = app.screen.height - 60;
+
+          if (asteroidsLeft.length === 0) {
+            console.log("win");
+            onEndWinGame();
+          }
         }
       });
     }
@@ -429,18 +455,54 @@ function checkCollisions(app) {
 }
 
 // start level 2
-async function onNextLevel(params) {
+
+async function onNextLevel() {
   console.log("next level started");
 
-  secondLevelText();
+  setTimeout(() => {
+    secondLevelText();
+    resetGameState(app);
+  }, 1000);
+
   setTimeout(() => {
     addBoss("/src/img/boss.webp");
-
     startTimer();
     addBullets();
   }, 1500);
 }
 
+// скидаємо таймер і кулі на початковий стан
+function resetGameState() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+  timeleft = 60;
+  timer.textContent = `Time: ${timeleft}`;
+
+  timerInterval = setInterval(() => {
+    timeleft--;
+    timer.textContent = `Time: ${timeleft}`;
+
+    if (timeleft <= 0) {
+      clearInterval(timerInterval);
+      onEndLoseGame();
+    }
+
+    if (bulletsleft <= 0) {
+      clearInterval(timerInterval);
+    }
+  }, 1000);
+
+  // .............................................
+
+  bulletsleft = maxBullets;
+  bullets.textContent = `Bullets: ${bulletsleft} / ${maxBullets}`;
+  countBullets.forEach((bullet) => {
+    bullet.visible = false;
+    bullet.y = app.screen.height - 60;
+  });
+}
 // додаємо boss
 async function addBoss(imageBoss) {
   const bossTexture = await Assets.load(imageBoss);

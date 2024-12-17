@@ -65,3 +65,7 @@ button:focus {
   display: none;
   opacity: 0;
 }
+
+/* button.hidden {
+  opacity: 0;
+} */
