@@ -19,21 +19,20 @@ const app = new Application();
 
 // =====================================================================
 
+const starCount = 100;
 let moveLeft = false;
 let moveRight = false;
 const shipSpeed = 4;
 const asteroidsLeft = [];
 const asteroidCount = 1;
-let asteroidsAdded = false;
 let countBullets = [];
+let countBossBullets = [];
 const maxBullets = 10;
 let bulletsleft = 10;
-let isLoseText = false;
 let isStartGame = false;
-let isEndedGame = false;
 let timeleft = 60;
-let timeInterval = [];
 let timerInterval = null;
+const bossSpeed = 1;
 
 // =====================================================================
 
@@ -67,7 +66,6 @@ async function addBackground(imageBg) {
 
 // додаємо зірки на background
 async function addStars() {
-  const starCount = 100;
   const starsGraphics = new Graphics();
 
   for (let index = 0; index < starCount; index++) {
@@ -87,9 +85,11 @@ async function addStars() {
 }
 
 // додаємо космічний корабель
+let spaceship;
+
 async function addSpaceShip(imageSpaceShipe) {
   const spaceshipTexture = await Assets.load(imageSpaceShipe);
-  const spaceship = new Sprite(spaceshipTexture);
+  spaceship = new Sprite(spaceshipTexture);
   spaceship.anchor.set(0.5);
   spaceship.width = 100;
   spaceship.height = 120;
@@ -160,7 +160,7 @@ async function addAsteroids(imageAsteroid) {
     }
   }
   addRandomAsteroids(asteroidCount);
-  asteroidsAdded = true;
+  // asteroidsAdded = true;
 }
 
 // Видалення всіх астероїдів при закінченні гри
@@ -178,7 +178,6 @@ function removeAsteroids(app) {
 }
 
 // додаємо логіку таймера
-
 async function startTimer() {
   timer.textContent = `Time: ${timeleft}`;
 
@@ -256,7 +255,7 @@ function fireBullet(spaceship) {
 // кнопка Start New Game
 async function onClickStartGameButton() {
   isStartGame = true;
-  asteroidsAdded = true;
+  // asteroidsAdded = true;
 
   startButton.addEventListener("click", () => {
     startButton.classList.toggle("hidden");
@@ -276,13 +275,6 @@ async function onClickStartGameButton() {
 function restartGameButton() {
   startButton.classList.remove("hidden");
   startButton.style.display = "block";
-
-  // startButton.addEventListener("click", () => {
-  //   location.reload();
-  // });
-  // setTimeout(() => {
-  //   resetGameState();
-  // }, 1000);
 }
 
 // кнопка Next Level
@@ -296,7 +288,7 @@ async function onClickNextLevelButton() {
 }
 // створюємо текст
 function addLoseText(app) {
-  isLoseText = true;
+  // isLoseText = true;
 
   const loseText = new Text({
     text: "YOU LOSE",
@@ -446,6 +438,8 @@ function checkCollisions(app) {
 
           if (asteroidsLeft.length === 0) {
             console.log("win");
+            // clearInterval(bulletInterval);
+            // resetGameState();
             onEndWinGame();
           }
         }
@@ -454,7 +448,7 @@ function checkCollisions(app) {
   });
 }
 
-// start level 2
+//=============================== start level 2 ===================================
 
 async function onNextLevel() {
   console.log("next level started");
@@ -503,10 +497,19 @@ function resetGameState() {
     bullet.y = app.screen.height - 60;
   });
 }
-// додаємо boss
+
+// ///////////////////////////////////////////////////////////////////////
+
+let boss;
+let bossPoint = 4;
+let lifePoint;
+let bossDirection = 1;
+let lifePointBar;
+
+// Додаємо боса
 async function addBoss(imageBoss) {
   const bossTexture = await Assets.load(imageBoss);
-  const boss = new Sprite(bossTexture);
+  boss = new Sprite(bossTexture);
   boss.anchor.set(0.5);
   boss.width = 100;
   boss.height = 100;
@@ -515,31 +518,135 @@ async function addBoss(imageBoss) {
 
   app.stage.addChild(boss);
 
-  // додаємо шкалу життя
-  function addLivePointBoss() {
-    if (!app) {
-      console.error("Application or app is not defined");
-      return;
-    }
-    const lifePointBar = new Container();
-    const lifePointWidth = 20;
-    const lifePointCount = 4;
+  addLivePointBoss();
+  moveBoss();
+  shootBossBullet();
 
-    for (let i = 0; i < lifePointCount; i++) {
-      const lifePoint = new Graphics();
+  app.ticker.add(() => {
+    checkBossCollision();
+  });
+}
 
-      lifePoint.rect(0, 0, lifePointWidth, 10);
-      lifePoint.fill("rgb(164, 6, 6)");
+// додаємо шкалу життя
+function addLivePointBoss() {
+  lifePointBar = new Container();
+  const lifePointWidth = 20;
+  const lifePointCount = 4;
 
-      lifePoint.x = i * (lifePointWidth + 5);
-      lifePointBar.addChild(lifePoint);
-    }
+  for (let i = 0; i < lifePointCount; i++) {
+    lifePoint = new Graphics();
 
-    lifePointBar.x = boss.x - (lifePointCount * (lifePointWidth + 5)) / 2;
-    lifePointBar.y = boss.y - boss.height / 2 - 20;
+    lifePoint.rect(0, 0, lifePointWidth, 10);
+    lifePoint.fill("rgb(164, 6, 6)");
 
-    app.stage.addChild(lifePointBar);
+    lifePoint.x = i * (lifePointWidth + 5);
+    lifePointBar.addChild(lifePoint);
   }
 
-  addLivePointBoss();
+  lifePointBar.x = boss.x - (lifePointCount * (lifePointWidth + 5)) / 2;
+  lifePointBar.y = boss.y - boss.height / 2 - 20;
+  app.stage.addChild(lifePointBar);
 }
+
+// Оновлення шкали поінтів
+function updateBossHP() {
+  const lifePoints = lifePointBar.getChildByName("lifePoint");
+  if (lifePoints) {
+    lifePoints.width = (bossPoint / 4) * 20;
+  }
+}
+
+// додаємо логіку руху боса
+function moveBoss() {
+  app.ticker.add(() => {
+    if (!boss) {
+      return;
+    }
+
+    boss.x += bossDirection * bossSpeed;
+
+    if (
+      boss.x >= app.screen.width - boss.width / 2 ||
+      boss.x <= boss.width / 2
+    ) {
+      bossDirection *= -1;
+    }
+
+    lifePointBar.x = boss.x - lifePointBar.width / 2;
+    lifePointBar.y = boss.y - boss.height / 2 - 20;
+  });
+}
+
+// додаємо логіку пострілів боса
+function shootBossBullet() {
+  setInterval(() => {
+    if (!boss) {
+      return;
+    }
+
+    const bossBullet = new Graphics().circle(0, 0, 8).fill("rgb(7, 120, 141)");
+    bossBullet.width = 20;
+    bossBullet.height = 20;
+    bossBullet.x = boss.x;
+    bossBullet.y = boss.y + boss.height / 2;
+
+    app.stage.addChild(bossBullet);
+
+    const bossBulletInterval = setInterval(() => {
+      bossBullet.y += 5;
+
+      if (bossBullet.y > app.screen.height) {
+        clearInterval(bossBulletInterval);
+        app.stage.removeChild(bossBullet);
+        return;
+      }
+
+      // Зіткнення з кулями корабля
+      countBullets.forEach((bullet) => {
+        if (
+          bossBullet &&
+          bullet.visible &&
+          isRectCollision(bossBullet, bullet)
+        ) {
+          bullet.visible = false;
+          app.stage.removeChild(bullet);
+          app.stage.removeChild(bossBullet);
+          clearInterval(bossBulletInterval);
+        }
+      });
+
+      // Зіткнення куль боса з кораблем
+      if (bossBullet && isRectCollision(bossBullet, spaceship)) {
+        onEndLoseGame();
+        clearInterval(bossBulletInterval);
+        app.stage.removeChild(bossBullet);
+      }
+    }, 100);
+  }, 2000);
+}
+
+// додаємо логіку гри корабля з босом
+function checkBossCollision() {
+  countBullets.forEach((bullet) => {
+    if (bullet.visible && isRectCollision(bullet, boss)) {
+      bullet.visible = false;
+      // app.stage.removeChild(bullet);
+      bullet.x = app.screen.width / 2;
+      bullet.y = app.screen.height - 60;
+
+      // Зменшуємо поінти боса
+      bossPoint -= 1;
+      updateBossHP();
+
+      if (bossPoint <= 0) {
+        onEndWinGame();
+        app.stage.removeChild(boss);
+        app.stage.removeChild(lifePointBar);
+        boss = null;
+      }
+    }
+  });
+}
+// app.ticker.add(() => {
+//   handleBossCollision();
+// });
