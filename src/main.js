@@ -17,23 +17,33 @@ const timer = document.getElementById("timer");
 const app = new Application();
 
 // =====================================================================
+let isStartGame = false;
 
 const starCount = 100;
-let moveLeft = false;
-let moveRight = false;
-const shipSpeed = 4;
-const asteroidsLeft = [];
-const asteroidCount = 1;
-let countBullets = [];
-let countBossBullets = [];
-const maxBullets = 10;
-let bulletsleft = 10;
-let isStartGame = false;
-let timeleft = 60;
-let timerInterval = null;
-const bossSpeed = 1;
 
 let spaceship = null;
+const shipSpeed = 4;
+let moveLeft = false;
+let moveRight = false;
+
+const asteroidsLeft = [];
+const asteroidCount = 1;
+
+let countBullets = [];
+const maxBullets = 10;
+let bulletsleft = 10;
+
+let timeleft = 60;
+let timerInterval = null;
+
+let restartButton;
+
+let boss;
+const bossSpeed = 1;
+let bossDirection = 1;
+let bossPoint = 4;
+let lifePoint;
+let lifePointBar;
 // =====================================================================
 
 (async () => {
@@ -47,8 +57,8 @@ let spaceship = null;
   await addBackground("/src/img/starry-sky.png");
   await addStars();
   await addSpaceShip("./src/img/spaceship.png");
-  await onClickStartGameButton();
-  await onClickNextLevelButton();
+  onClickStartGameButton();
+  onClickNextLevelButton();
 })();
 
 // =======================================================================
@@ -60,8 +70,6 @@ async function addBackground(imageBg) {
   background.width = app.screen.width;
   background.height = app.screen.height;
   app.stage.addChild(background);
-
-  // return background;
 }
 
 // додаємо зірки на background
@@ -80,12 +88,9 @@ async function addStars() {
   }
 
   app.stage.addChild(starsGraphics);
-
-  // return starsGraphics;
 }
 
 // додаємо космічний корабель
-
 async function addSpaceShip(imageSpaceShipe) {
   const spaceshipTexture = await Assets.load(imageSpaceShipe);
   spaceship = new Sprite(spaceshipTexture);
@@ -95,24 +100,10 @@ async function addSpaceShip(imageSpaceShipe) {
   spaceship.x = app.screen.width / 2;
   spaceship.y = app.screen.height - spaceship.height / 2;
   app.stage.addChild(spaceship);
-
-  // await setupSpaceShip(spaceship, app);
 }
 
 // додаємо управління рухом корабля
-
 function setupSpaceShip() {
-  // if (isStartGame) {
-  //   window.addEventListener("keydown", handleKeyDown);
-  //   window.addEventListener("keyup", handleKeyUp);
-  // } else {
-  //   moveLeft = false;
-  //   moveRight = false;
-
-  //   window.removeEventListener("keydown", handleKeyDown);
-  //   window.removeEventListener("keyup", handleKeyUp);
-  // }
-
   window.addEventListener("keydown", (event) => {
     if (event.code === "ArrowLeft") {
       moveLeft = true;
@@ -144,27 +135,6 @@ function setupSpaceShip() {
   });
 }
 
-// function handleKeyDown(event) {
-//   if (event.code === "ArrowLeft") {
-//     moveLeft = true;
-//   }
-//   if (event.code === "ArrowRight") {
-//     moveRight = true;
-//   }
-//   if (event.code === "Space") {
-//     fireBullet();
-//   }
-// }
-
-// function handleKeyUp(event) {
-//   if (event.code === "ArrowLeft") {
-//     moveLeft = false;
-//   }
-//   if (event.code === "ArrowRight") {
-//     moveRight = false;
-//   }
-// }
-
 // додаємо астероїди
 async function addAsteroids(imageAsteroid) {
   // isStartGame = true;
@@ -191,12 +161,11 @@ async function addAsteroids(imageAsteroid) {
     }
   }
   addRandomAsteroids(asteroidCount);
-  // asteroidsAdded = true;
 }
 
 // Видалення всіх астероїдів при закінченні гри
 function removeAsteroids(app) {
-  console.log("remove asteroids", asteroidsLeft);
+  // console.log("remove asteroids");
 
   if (asteroidsLeft.length > 0) {
     asteroidsLeft.forEach((asteroid) => {
@@ -218,31 +187,24 @@ async function startTimer() {
     timer.textContent = `Time: ${timeleft}`;
 
     if (timeleft <= 0) {
-      // isStartGame = false;
-      // setupSpaceShip();
-
-      onEndLoseGame();
       clearInterval(timerInterval);
+      onEndLoseGame();
 
-      console.log("finish timer");
+      // console.log("finish timer");
     }
 
     if (bulletsleft <= 0) {
-      // isStartGame = false;
-      // setupSpaceShip();
       clearInterval(timerInterval);
     }
 
     if (asteroidsLeft <= 0) {
-      // isStartGame = false;
-      // setupSpaceShip();
       clearInterval(timerInterval);
     }
   }, 1000);
 }
 
 // створюємо кулі
-async function addBullets() {
+function addBullets() {
   for (let i = 0; i < maxBullets; i++) {
     const bullet = new Graphics().circle(0, 0, 8).fill("rgb(164, 6, 6)");
 
@@ -262,10 +224,9 @@ function fireBullet() {
   }
 
   if (bulletsleft <= 0) {
-    console.log("bullets finished");
-    // isStartGame = false;
-    // setupSpaceShip();
+    // console.log("bullets finished");
     onEndLoseGame();
+
     return;
   }
 
@@ -291,9 +252,8 @@ function fireBullet() {
 }
 
 // кнопка Start New Game
-async function onClickStartGameButton() {
+function onClickStartGameButton() {
   isStartGame = true;
-  // asteroidsAdded = true;
 
   startButton.addEventListener("click", () => {
     startButton.classList.toggle("hidden");
@@ -301,7 +261,6 @@ async function onClickStartGameButton() {
     setTimeout(() => {
       startButton.style.display = "none";
       onStartGame();
-      // resetGameState();
     }, 500);
 
     setTimeout(() => {
@@ -316,7 +275,7 @@ function restartGameButton() {
 }
 
 // кнопка Next Level
-async function onClickNextLevelButton() {
+function onClickNextLevelButton() {
   nextLevelButton.addEventListener("click", () => {
     nextLevelButton.classList.add("hidden");
     nextLevelButton.style.display = "none";
@@ -324,9 +283,10 @@ async function onClickNextLevelButton() {
     onNextLevel();
   });
 }
+
 // створюємо текст
 function addLoseText(app) {
-  // isLoseText = true;
+  // isStartGame = false;
 
   const loseText = new Text({
     text: "YOU LOSE",
@@ -349,6 +309,8 @@ function addLoseText(app) {
 }
 
 function addWinText(app) {
+  // isStartGame = false;
+
   const winText = new Text({
     text: "YOU WIN",
     style: {
@@ -412,15 +374,15 @@ function secondLevelText() {
 
 // ініціалізуємо початок гри / level 1
 async function onStartGame() {
-  // isStartGame = true;
-  console.log("game started");
+  isStartGame = true;
+  // console.log("game started");
+
   isStartGame = true;
   setupSpaceShip();
   firstLevelText();
 
   setTimeout(() => {
     addAsteroids("/src/img/asteroid.png");
-    startTimer();
     addBullets();
   }, 1500);
 
@@ -433,13 +395,14 @@ async function onStartGame() {
 function onEndLoseGame() {
   setTimeout(() => {
     removeAsteroids(app);
+    clearInterval(timerInterval);
   }, 1000);
 
   setTimeout(() => {
     addLoseText(app);
   }, 1500);
 
-  setTimeout(() => {
+  restartButton = setTimeout(() => {
     restartGameButton();
   }, 2000);
 }
@@ -447,6 +410,7 @@ function onEndLoseGame() {
 function onEndWinGame() {
   setTimeout(() => {
     addWinText(app);
+    clearInterval(timerInterval);
   }, 1500);
 
   setTimeout(() => {
@@ -477,36 +441,12 @@ function checkCollisions(app) {
           bullet.y = app.screen.height - 60;
 
           if (asteroidsLeft.length === 0) {
-            console.log("win");
-            // clearInterval(bulletInterval);
-            // resetGameState();
+            // console.log("win");
+
             onEndWinGame();
           }
         }
       });
-    }
-  });
-}
-
-//=============================== start level 2 ===================================
-
-async function onNextLevel() {
-  console.log("next level started");
-
-  setTimeout(() => {
-    secondLevelText();
-    resetGameState(app);
-  }, 1000);
-
-  setTimeout(() => {
-    addBoss("/src/img/boss.webp");
-    startTimer();
-    addBullets();
-  }, 1500);
-
-  app.ticker.add(() => {
-    if (boss) {
-      checkBossCollision();
     }
   });
 }
@@ -544,13 +484,27 @@ function resetGameState() {
   });
 }
 
-// ///////////////////////////////////////////////////////////////////////
+//=============================== start level 2 ===================================
 
-let boss;
-let bossPoint = 4;
-let lifePoint;
-let bossDirection = 1;
-let lifePointBar;
+function onNextLevel() {
+  // console.log("next level started");
+
+  setTimeout(() => {
+    secondLevelText();
+    resetGameState(app);
+  }, 1000);
+
+  setTimeout(() => {
+    addBoss("/src/img/boss.webp");
+    addBullets();
+  }, 1500);
+
+  app.ticker.add(() => {
+    if (boss) {
+      checkBossCollision();
+    }
+  });
+}
 
 // Додаємо боса
 async function addBoss(imageBoss) {
@@ -621,6 +575,8 @@ function moveBoss() {
   });
 }
 
+let bossBullet;
+
 // додаємо логіку пострілів боса
 function shootBossBullet() {
   setInterval(() => {
@@ -628,7 +584,7 @@ function shootBossBullet() {
       return;
     }
 
-    const bossBullet = new Graphics().circle(0, 0, 8).fill("rgb(7, 120, 141)");
+    bossBullet = new Graphics().circle(0, 0, 8).fill("ffff00");
     bossBullet.width = 20;
     bossBullet.height = 20;
     bossBullet.x = boss.x;
@@ -644,6 +600,14 @@ function shootBossBullet() {
         app.stage.removeChild(bossBullet);
         return;
       }
+      if (bulletsleft <= 0) {
+        setInterval(() => {
+          clearInterval(bossBulletInterval);
+          app.stage.removeChild(bossBullet);
+
+          stopBoss();
+        }, 500);
+      }
 
       // Зіткнення з кулями корабля
       countBullets.forEach((bullet) => {
@@ -653,10 +617,17 @@ function shootBossBullet() {
           isRectCollision(bossBullet, bullet)
         ) {
           bullet.visible = false;
+          clearInterval(bossBulletInterval);
+
+          if (app.stage.children.includes(bullet)) {
+            app.stage.removeChild(bullet);
+          }
+          if (app.stage.children.includes(bossBullet)) {
+            app.stage.removeChild(bossBullet);
+          }
+
           bullet.x = app.screen.width / 2;
           bullet.y = app.screen.height - 60;
-          app.stage.removeChild(bossBullet);
-          clearInterval(bossBulletInterval);
         }
       });
 
@@ -666,6 +637,8 @@ function shootBossBullet() {
         clearInterval(bossBulletInterval);
         app.stage.removeChild(bossBullet);
         app.stage.removeChild(spaceship);
+        stopBoss();
+        clearTimeout(restartButton);
       }
     }, 100);
   }, 2000);
@@ -681,18 +654,29 @@ function checkBossCollision() {
 
       // Зменшуємо поінти боса
       bossPoint -= 1;
-
-      console.log(bossPoint);
-
       updateBossPoints();
 
       if (bossPoint <= 0) {
-        onEndWinGame();
-        app.stage.removeChild(boss);
-        app.stage.removeChild(lifePointBar);
-        // app.stage.removeChild(bossBullet);
-        boss = null;
+        setTimeout(() => {
+          app.stage.removeChild(boss);
+          app.stage.removeChild(lifePointBar);
+          app.stage.removeChild(bossBullet);
+          app.stage.removeChild(spaceship);
+          boss = null;
+          onEndWinGame();
+        }, 1000);
       }
     }
   });
+}
+
+// зупиняємо боса
+function stopBoss() {
+  setTimeout(() => {
+    if (boss) {
+      app.stage.removeChild(boss);
+      app.stage.removeChild(lifePointBar);
+      boss = null;
+    }
+  }, 1000);
 }
