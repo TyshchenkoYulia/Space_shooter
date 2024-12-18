@@ -39,6 +39,7 @@ let timerInterval = null;
 let restartButton;
 
 let boss;
+let bossBullet;
 const bossSpeed = 1;
 let bossDirection = 1;
 let bossPoint = 4;
@@ -574,8 +575,6 @@ function moveBoss() {
     lifePointBar.y = boss.y - boss.height / 2 - 20;
   });
 }
-
-let bossBullet;
 
 // додаємо логіку пострілів боса
 function shootBossBullet() {
