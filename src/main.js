@@ -39,7 +39,7 @@ let timerInterval = null;
 let restartButton;
 
 let boss;
-let bossBullet;
+// let bossBullet;
 const bossSpeed = 1;
 let bossDirection = 1;
 let bossPoint = 4;
@@ -583,7 +583,7 @@ function shootBossBullet() {
       return;
     }
 
-    bossBullet = new Graphics().circle(0, 0, 8).fill("ffff00");
+    const bossBullet = new Graphics().circle(0, 0, 8).fill("ffff00");
     bossBullet.width = 20;
     bossBullet.height = 20;
     bossBullet.x = boss.x;
@@ -644,7 +644,7 @@ function shootBossBullet() {
 }
 
 // додаємо логіку гри корабля з босом
-function checkBossCollision() {
+function checkBossCollision(bossBullet) {
   countBullets.forEach((bullet) => {
     if (bullet.visible && isRectCollision(bullet, boss)) {
       bullet.visible = false;
